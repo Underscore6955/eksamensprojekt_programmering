@@ -5,10 +5,10 @@ using System.Collections;
 public class CardManager : MonoBehaviour
 {
     [SerializeField] GameObject cardPrefab;
-    public List<GameObject> deck;
+    public List<Card> deck;
     public int curTurn;
     public List<GameObject> curPlayers;
-    public List<GameObject> playedCards;
+    public List<Card> playedCards;
     private void Start()
     {
         StartNewGame();
@@ -26,15 +26,17 @@ public class CardManager : MonoBehaviour
             for (int j = 0; j <= 3; j++)
             {
                 GameObject cardToAdd = Instantiate(cardPrefab, transform);
+                cardToAdd.transform.parent = null;
                 cardToAdd.GetComponent<Card>().suit = j;
                 cardToAdd.GetComponent<Card>().cardLvl = i;
-                deck.Add(cardToAdd);
+                deck.Add(cardToAdd.GetComponent<Card>());
                 if (i <= 12) 
                 {
                     GameObject duplicateCard = Instantiate(cardPrefab,transform);
+                    duplicateCard.transform.parent = null;
                     duplicateCard.GetComponent<Card>().suit = j;
                     duplicateCard.GetComponent<Card>().cardLvl = i;
-                    deck.Add(duplicateCard);
+                    deck.Add(duplicateCard.GetComponent<Card>());
                 }
             }
         }
@@ -62,7 +64,7 @@ public class CardManager : MonoBehaviour
     }
     void Shuffle()
     {
-        List<GameObject> shuffledDeck = new List<GameObject>();
+        List<Card> shuffledDeck = new List<Card>();
         while (deck.Count > 0)
         {
             int cardNum = Random.Range(0, deck.Count);
@@ -73,30 +75,25 @@ public class CardManager : MonoBehaviour
     }
     void Deal(GameObject player)
     {
-        GameObject cardToDeal = deck[0];
+        Card cardToDeal = deck[0];
         deck.RemoveAt(0);
-        cardToDeal.GetComponent<Card>().moveTo = player.transform.position;
-        cardToDeal.GetComponent<Card>().moving = true;
+        cardToDeal.moveTo = player.transform.position;
+        cardToDeal.moving = true;
         player.GetComponent<HandManager>().hand.Add(cardToDeal);
     }
-    IEnumerator waitCardDeal(float time)
-    {
-        yield return new WaitForSeconds(time);
-    }
-    public void PlayCard(GameObject playCard, List<GameObject> list)
+    public void PlayCard(Card playCard, List<Card> list)
     {
         playedCards.Add(playCard);
         list.Remove(playCard);
-        playCard.GetComponent<Card>().moveTo = new Vector2(transform.position.x + 2, transform.position.y);
-        playCard.GetComponent<Card>().moving = true;
+        try { playCard.sr.sortingOrder = playedCards.IndexOf(playCard); } catch { }
+        playCard.moveTo = new Vector2(transform.position.x + 2, transform.position.y);
+        playCard.moving = true;
     }
-    public bool CheckCardPlayabilty(GameObject playCard)
+    public bool CheckCardPlayabilty(Card playCard)
     {
-        Debug.Log(playCard.GetComponent<Card>().cardLvl + " " + playCard.GetComponent<Card>().suit);
-        Debug.Log(playedCards[playedCards.Count - 1].GetComponent<Card>().cardLvl + " " + playedCards[playedCards.Count - 1].GetComponent<Card>().suit);
-        if (playCard.GetComponent<Card>().cardLvl >= 13) {Debug.Log("wildcard"); return true; }
-        if (playCard.GetComponent<Card>().cardLvl == playedCards[playedCards.Count - 1].GetComponent<Card>().cardLvl) { Debug.Log("same lvl"); return true; }
-        if (playCard.GetComponent<Card>().suit == playedCards[playedCards.Count - 1].GetComponent<Card>().suit) { Debug.Log("same suit"); return true; }
+        if (playCard.cardLvl >= 13) {return true; }
+        if (playCard.cardLvl == playedCards[playedCards.Count - 1].cardLvl) { return true; }
+        if (playCard.suit == playedCards[playedCards.Count - 1].suit) { return true; }
         return false;
     }
 }

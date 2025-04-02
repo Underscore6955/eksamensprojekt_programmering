@@ -43,6 +43,7 @@ public class Card : MonoBehaviour
         {
             moving = false;
             rb.linearVelocity = Vector2.zero;
+            transform.position = moveLoc;
         }
     }
 }
