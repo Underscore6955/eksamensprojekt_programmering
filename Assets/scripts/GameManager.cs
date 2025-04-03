@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         CardManager cardManager = GameObject.Find("game Manager").GetComponent<CardManager>();
+        cardManager.StartNewGame();
     }
     public void NextPlayer()
     {

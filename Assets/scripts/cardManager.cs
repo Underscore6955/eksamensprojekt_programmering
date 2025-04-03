@@ -6,19 +6,18 @@ public class CardManager : MonoBehaviour
 {
     [SerializeField] GameObject cardPrefab;
     public List<Card> deck;
-    public int curTurn;
     public List<Card> playedCards;
+    [SerializeField] public GameObject unoPrefab;
     [SerializeField] GameManager gameManager;
     private void Start()
     {
         gameManager = gameObject.GetComponent<GameManager>();
-        StartNewGame();
     }
-    void StartNewGame()
+    public void StartNewGame()
     {
         GenerateDeck();
         StartCoroutine(StartDeal());
-        PlayCard(deck[0], deck);
+        StartCoroutine(PlayCard(deck[0], deck));
     }
     void GenerateDeck()
     {
@@ -26,14 +25,14 @@ public class CardManager : MonoBehaviour
         {
             for (int j = 0; j <= 3; j++)
             {
-                GameObject cardToAdd = Instantiate(cardPrefab, transform);
+                GameObject cardToAdd = Instantiate(cardPrefab, transform.position,Quaternion.identity);
                 cardToAdd.transform.parent = null;
                 cardToAdd.GetComponent<Card>().suit = j;
                 cardToAdd.GetComponent<Card>().cardLvl = i;
                 deck.Add(cardToAdd.GetComponent<Card>());
                 if (i <= 12) 
                 {
-                    GameObject duplicateCard = Instantiate(cardPrefab,transform);
+                    GameObject duplicateCard = Instantiate(cardPrefab, transform.position, Quaternion.identity);
                     duplicateCard.transform.parent = null;
                     duplicateCard.GetComponent<Card>().suit = j;
                     duplicateCard.GetComponent<Card>().cardLvl = i;
@@ -45,7 +44,7 @@ public class CardManager : MonoBehaviour
     }
     IEnumerator StartDeal()
     {
-        for (int i = 0; i <= 30; i++)
+        for (int i = 0; i <= 5; i++)
         {
             foreach (GameObject curPlayer in gameManager.curPlayers)
             {
@@ -74,21 +73,25 @@ public class CardManager : MonoBehaviour
         }
         deck = shuffledDeck;
     }
-    void Deal(GameObject player)
+    public Card Deal(GameObject player)
     {
         Card cardToDeal = deck[0];
         deck.RemoveAt(0);
         cardToDeal.moveTo = player.transform.position;
         cardToDeal.moving = true;
         player.GetComponent<HandManager>().hand.Add(cardToDeal);
+        return cardToDeal;
     }
-    public void PlayCard(Card playCard, List<Card> list)
+    public IEnumerator PlayCard(Card playCard, List<Card> list)
     {
         playedCards.Add(playCard);
         list.Remove(playCard);
         try { playCard.sr.sortingOrder = playedCards.IndexOf(playCard); } catch { }
-        playCard.moveTo = new Vector2(transform.position.x + 2, transform.position.y);
+        playCard.moveTo = new Vector2(transform.position.x + 2 + Random.Range(-0.1f,0.1f), transform.position.y + Random.Range(-0.1f, 0.1f));
         playCard.moving = true;
+        StartCoroutine(playCard.SpecialAbility());
+        while (playCard.moving) { yield return null; }
+        playCard.gameObject.transform.rotation = Quaternion.Euler(0, 0, Random.Range(-12, 13));
     }
     public bool CheckCardPlayabilty(Card playCard)
     {
