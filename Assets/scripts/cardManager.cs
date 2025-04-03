@@ -7,10 +7,11 @@ public class CardManager : MonoBehaviour
     [SerializeField] GameObject cardPrefab;
     public List<Card> deck;
     public int curTurn;
-    public List<GameObject> curPlayers;
     public List<Card> playedCards;
+    [SerializeField] GameManager gameManager;
     private void Start()
     {
+        gameManager = gameObject.GetComponent<GameManager>();
         StartNewGame();
     }
     void StartNewGame()
@@ -46,7 +47,7 @@ public class CardManager : MonoBehaviour
     {
         for (int i = 0; i <= 30; i++)
         {
-            foreach (GameObject curPlayer in curPlayers)
+            foreach (GameObject curPlayer in gameManager.curPlayers)
             {
                 Deal(curPlayer);
                 yield return new WaitForSeconds(0.1f);

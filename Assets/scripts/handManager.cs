@@ -8,8 +8,12 @@ public class HandManager : MonoBehaviour
 {
     float radius = 8;
     public List<Card> hand = new List<Card>();
-    public int playerNum;
     public bool ai;
+    GameManager gameManager;
+    private void Start()
+    {
+        gameManager = GameObject.Find("game Manager").GetComponent<GameManager>();
+    }
     private void Update()
     {
         if (hand.Count <= 0) GameObject.Find("game Manager").GetComponent<CardManager>().Win(gameObject);
@@ -18,7 +22,7 @@ public class HandManager : MonoBehaviour
     void LateUpdate()
     {
         BuildHand();
-        if (!ai) HighlightCard();
+        if (!ai && gameManager.curPlayers[gameManager.turn] == gameObject) HighlightCard();
     }
     private List<Card> SortHand(List<Card> hand)
     {
@@ -71,9 +75,79 @@ public class HandManager : MonoBehaviour
         if (!cardManager.CheckCardPlayabilty(cardScript)) cardScript.sr.color = new Color(0.7f, 0.7f, 0.7f); 
         else 
         {
-            if (Input.GetMouseButtonUp(0)) { cardManager.PlayCard(cardScript,hand); }
+            if (Input.GetMouseButtonUp(0)) { cardManager.PlayCard(cardScript,hand); gameManager.NextPlayer(); }
             cardScript.sr.color = new Color(1f, 1f, 1f); 
         }
         cardScript.selected = true;
+    }
+    private void AIPlay()
+    {
+        Card selectedCard = null;
+        foreach (Card curCard in hand)
+        {
+            int nextTurn = (gameManager.turn + gameManager.direction) % gameManager.curPlayers.Count;
+            if (nextTurn < 0) nextTurn += gameManager.curPlayers.Count;
+            if (gameManager.curPlayers[nextTurn].GetComponent<HandManager>().hand.Count < 2)
+            {
+                if (curCard == null) selectedCard = curCard;
+                switch (curCard.cardLvl)
+                {
+                    case 14:
+                        selectedCard = curCard;
+                        break;
+
+                    case int n when (n > 9 && n < 13):
+                        if (selectedCard == null || selectedCard.cardLvl < 10 || selectedCard.cardLvl == 13 || curCard.cardLvl > selectedCard.cardLvl)
+                        {
+                            selectedCard = curCard;
+                        }
+                        break;
+
+                    case 13:
+                        if (selectedCard == null || selectedCard.cardLvl < 10 || selectedCard.cardLvl == 13)
+                        {
+                            selectedCard = curCard;
+                        }
+                        break;
+
+                    case int n when (n < 10):
+                        if (selectedCard == null || (selectedCard.cardLvl < 10 && curCard.cardLvl > selectedCard.cardLvl))
+                        {
+                            selectedCard = curCard;
+                        }
+                        break;
+                }
+            }
+            else
+            {
+                switch (curCard.cardLvl)
+                {
+                    case 14:
+                        selectedCard = curCard;
+                        break;
+
+                    case int n when (n > 9 && n < 13):
+                        if (selectedCard == null || selectedCard.cardLvl < 10 || selectedCard.cardLvl == 13 || curCard.cardLvl > selectedCard.cardLvl)
+                        {
+                            selectedCard = curCard;
+                        }
+                        break;
+
+                    case 13:
+                        if (selectedCard == null || selectedCard.cardLvl < 10 || selectedCard.cardLvl == 13)
+                        {
+                            selectedCard = curCard;
+                        }
+                        break;
+
+                    case int n when (n < 10):
+                        if (selectedCard == null || (selectedCard.cardLvl < 10 && curCard.cardLvl > selectedCard.cardLvl))
+                        {
+                            selectedCard = curCard;
+                        }
+                        break;
+                }
+            }
+        }
     }
 }
