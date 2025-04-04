@@ -141,7 +141,8 @@ MonoBehaviour:
   selected: 0
   moving: 0
   srSize: {x: 0, y: 0, z: 0}
-  backside: {fileID: 0}
+  backside: {fileID: -1558256198040742725, guid: 993d6755921a68742974858998697f12, type: 3}
+  turned: 0
   colorSelectPrefab: {fileID: 1822159728090791825, guid: c991e748ee6aa8340bf37d53f8c91af0, type: 3}
 --- !u!50 &3671501023535762435
 Rigidbody2D:

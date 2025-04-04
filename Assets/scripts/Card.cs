@@ -12,15 +12,18 @@ public class Card : MonoBehaviour
     public int suit;
     static string[] cardLvlTranlate = { "Reverse", "Skip", "Draw", "Wild", "Wild_Draw" } ;
     static string[] cardSuitTranslate = { "Blue", "Red", "Green", "Yellow"};
+    static Color[] colorTranlate = { Color.blue, Color.red, Color.green, Color.yellow };
     public Vector2 moveTo;
     public bool selected;
     public bool moving;
     public Vector3 srSize;
     [SerializeField] Sprite backside;
+    Sprite frontside;
     static GameManager gameManager;
     static CardManager cardManager;
     public static bool choosingColor;
     static int nextTurn;
+    public bool turned;
     [SerializeField] GameObject colorSelectPrefab;
     void Awake()
     {
@@ -31,15 +34,16 @@ public class Card : MonoBehaviour
     }
     private void Start()
     {
-        if (cardLvl <= 9) { sr.sprite = Resources.Load<Sprite>(new string(cardSuitTranslate[suit] + "_" + cardLvl)); }
-        else if (cardLvl <= 12) { sr.sprite = Resources.Load<Sprite>(new string(cardSuitTranslate[suit] + "_" + cardLvlTranlate[cardLvl - 10])); }
-        else { sr.sprite = Resources.Load<Sprite>(new string(cardLvlTranlate[cardLvl - 10])); }
+        if (cardLvl <= 9) { frontside = Resources.Load<Sprite>(new string(cardSuitTranslate[suit] + "_" + cardLvl)); }
+        else if (cardLvl <= 12) { frontside = Resources.Load<Sprite>(new string(cardSuitTranslate[suit] + "_" + cardLvlTranlate[cardLvl - 10])); }
+        else { frontside = Resources.Load<Sprite>(new string(cardLvlTranlate[cardLvl - 10])); }
     }
     private void Update()
     {
+        if (turned && !CardManager.openCards) { sr.sprite = backside; } else { sr.sprite = frontside; }
         sr.gameObject.transform.localPosition = Vector2.zero;
         sr.gameObject.transform.localScale = srSize;
-        sr.color = Color.white;
+        if (sr.color != Color.blue && sr.color != Color.red && sr.color != Color.green && sr.color != Color.yellow) sr.color = Color.white;
         selected = false;
     }
     void FixedUpdate()
@@ -59,7 +63,7 @@ public class Card : MonoBehaviour
             transform.position = moveLoc;
         }
     }
-    public IEnumerator SpecialAbility()
+    public void SpecialAbility()
     {
         nextTurn = (gameManager.turn + gameManager.direction) % gameManager.curPlayers.Count;
         if (nextTurn < 0) nextTurn += gameManager.curPlayers.Count;
@@ -79,7 +83,6 @@ public class Card : MonoBehaviour
                 break;
             case 14:
                 StartCoroutine(WildCard());
-                while (choosingColor) yield return null;
                 StartCoroutine(AddCards(4));
                 break;
         }
@@ -97,13 +100,13 @@ public class Card : MonoBehaviour
         GameObject colorSelect = null;
         if (gameManager.curPlayers[gameManager.turn].GetComponent<HandManager>().ai) 
         {
-            Debug.Log("ai");
             int[] suitCount = { 0,0,0,0}; 
             foreach (Card curCard in gameManager.curPlayers[gameManager.turn].GetComponent<HandManager>().hand)
             {
                 if (curCard.cardLvl < 13) suitCount[curCard.suit]++;
             }
             suit = Array.IndexOf(suitCount, suitCount.Max());
+            sr.color = colorTranlate[suit];
         }
         else
         {
@@ -116,7 +119,12 @@ public class Card : MonoBehaviour
             {
                 foreach (var curObj in Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition)))
                 {
-                    if (cardSuitTranslate.Any(obj => obj == curObj.gameObject.tag)) { suit = Array.IndexOf(cardSuitTranslate, curObj.gameObject.tag); Debug.Log("hose"); choosingColor = false; }
+                    if (cardSuitTranslate.Any(obj => obj == curObj.gameObject.tag)) 
+                    { 
+                        suit = Array.IndexOf(cardSuitTranslate, curObj.gameObject.tag);
+                        sr.color = colorTranlate[suit];
+                        choosingColor = false; 
+                    }
                 }
             }
             yield return null; 

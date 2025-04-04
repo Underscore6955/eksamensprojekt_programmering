@@ -14,6 +14,7 @@ public class HandManager : MonoBehaviour
     CardManager cardManager;
     bool hasPlayed = false;
     bool callingUno;
+    public static bool openCards;
     private void Start()
     {
         gameManager = GameObject.Find("game Manager").GetComponent<GameManager>();
@@ -21,7 +22,7 @@ public class HandManager : MonoBehaviour
     }
     private void Update()
     {
-        if (Card.choosingColor) return; 
+        if (Card.choosingColor || !cardManager.finishedDealing) return; 
         if (Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition)).Any(collider => collider.gameObject == gameManager.gameObject) && Input.GetMouseButtonUp(0) && gameManager.curPlayers[gameManager.turn] == gameObject && !Card.choosingColor && !callingUno)
         {
             Card newCard = cardManager.Deal(gameObject);
@@ -29,7 +30,7 @@ public class HandManager : MonoBehaviour
             gameManager.NextPlayer();
         }
         if (ai && gameManager.curPlayers[gameManager.turn] == gameObject && !hasPlayed) { hasPlayed = true; StartCoroutine(AIPlay()); }
-        if (hand.Count <= 0) GameObject.Find("game Manager").GetComponent<CardManager>().Win(gameObject);
+        if (hand.Count <= 0) gameManager.Win(gameObject);
         hand = SortHand(hand);
     }
     void LateUpdate()
@@ -93,7 +94,7 @@ public class HandManager : MonoBehaviour
     }
     IEnumerator AIPlay()
     {
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(1);
         Card selectedCard = null;
         foreach (Card curCard in hand)
         {
